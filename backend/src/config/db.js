@@ -9,9 +9,20 @@ pool.on('connect', () => {
     console.log('🔗 Conectado a la base de datos PostgreSQL');
 });
 
-// Función automática para inicializar tablas y semillas
 const initDB = async () => {
-    const createTableQuery = `
+    // Query para crear la tabla de usuarios según los roles de tu informe
+    const createUsuariosTable = `
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            rol VARCHAR(50) DEFAULT 'comprador', -- comprador, proveedor, administrador
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+
+    const createProductosTable = `
         CREATE TABLE IF NOT EXISTS productos (
             id SERIAL PRIMARY KEY,
             nombre VARCHAR(255) NOT NULL,
@@ -19,21 +30,23 @@ const initDB = async () => {
             precio DECIMAL(10, 2) NOT NULL,
             stock INT DEFAULT 0,
             proveedor VARCHAR(255),
-            especificaciones JSONB, -- Soporte nativo JSONB para mecatrónica
+            especificaciones JSONB,
             fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
 
     try {
-        // 1. Intentar crear la tabla si no existe
-        await pool.query(createTableQuery);
-        console.log('✅ Tabla "productos" verificada/creada correctamente en PostgreSQL.');
+        // 1. Crear tabla de usuarios
+        await pool.query(createUsuariosTable);
+        console.log('✅ Tabla "usuarios" verificada/creada correctamente.');
 
-        // 2. Verificar si está vacía para insertar el producto semilla
-        const resultadoVeces = await pool.query('SELECT COUNT(*) FROM productos');
-        const cantidad = parseInt(resultadoVeces.rows[0].count);
+        // 2. Crear tabla de productos
+        await pool.query(createProductosTable);
+        console.log('✅ Tabla "productos" verificada/creada correctamente.');
 
-        if (cantidad === 0) {
+        // 3. Insertar producto semilla si la tabla está vacía
+        const resultadoProductos = await pool.query('SELECT COUNT(*) FROM productos');
+        if (parseInt(resultadoProductos.rows[0].count) === 0) {
             const insertSeedQuery = `
                 INSERT INTO productos (nombre, descripcion, precio, stock, proveedor, especificaciones)
                 VALUES (
@@ -46,11 +59,11 @@ const initDB = async () => {
                 );
             `;
             await pool.query(insertSeedQuery);
-            console.log('🌱 Base de datos vacía: Producto semilla insertado con éxito.');
+            console.log('🌱 Producto semilla insertado con éxito.');
         }
 
     } catch (err) {
-        console.error('❌ Error crítico al inicializar la base de datos:', err);
+        console.error('❌ Error al inicializar las tablas de la base de datos:', err);
     }
 };
 
