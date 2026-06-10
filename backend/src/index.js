@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const db = require('./config/db');
 
@@ -9,8 +10,9 @@ const productoRoutes = require('./routes/productoRoutes');
 
 const app = express();
 
-// Middleware obligatorio para procesar solicitudes JSON
-app.use(express.json());
+// Middlewares
+app.use(cors()); // Permitir peticiones desde el frontend
+app.use(express.json()); // Procesar solicitudes JSON
 
 // Registro de Módulos de la API
 app.use('/api/auth', authRoutes);

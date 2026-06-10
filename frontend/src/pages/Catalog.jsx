@@ -1,23 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, InputGroup, Button } from 'react-bootstrap';
 import { FiSearch } from 'react-icons/fi';
 import ProductCard from '../components/ProductCard';
-
-const MOCK_PRODUCTS = [
-  { id: 1, name: 'Microcontrolador XYZ-123', description: 'Microcontrolador de 32 bits, 120MHz, con múltiples puertos I/O y soporte I2C/SPI.', price: 25.00 },
-  { id: 2, name: 'Sensor de Temperatura NTC', description: 'Sensor NTC de alta precisión para mediciones en entornos industriales (-40 a 125 °C).', price: 5.50 },
-  { id: 3, name: 'Módulo WiFi ESP-01', description: 'Módulo de conexión inalámbrica compacto, ideal para proyectos IoT.', price: 12.00 },
-  { id: 4, name: 'Resistencias 10kOhm (x100)', description: 'Paquete de 100 resistencias SMD de 10kOhm con 1% de tolerancia.', price: 3.50 },
-  { id: 5, name: 'Pantalla OLED 0.96"', description: 'Pantalla OLED I2C de 128x64 píxeles, luz azul.', price: 18.00 },
-];
+import api from '../services/api';
 
 const Catalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = MOCK_PRODUCTS.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get('/productos');
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter(product => {
+    const nombre = product.nombre || '';
+    const desc = product.descripcion || '';
+    return nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           desc.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <Container className="my-5">
@@ -44,18 +55,27 @@ const Catalog = () => {
       </Row>
 
       {/* Product Grid */}
-      <Row className="g-4">
-        {filteredProducts.map(product => (
-          <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
-            <ProductCard {...product} />
-          </Col>
-        ))}
-        {filteredProducts.length === 0 && (
-          <div className="text-center text-muted mt-5">
-            No se encontraron componentes que coincidan con la búsqueda.
-          </div>
-        )}
-      </Row>
+      {loading ? (
+        <div className="text-center text-muted mt-5">Cargando productos...</div>
+      ) : (
+        <Row className="g-4">
+          {filteredProducts.map(product => (
+            <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
+              <ProductCard 
+                id={product.id}
+                name={product.nombre || 'Sin nombre'} 
+                description={product.descripcion || 'Sin descripción'} 
+                price={parseFloat(product.precio) || 0} 
+              />
+            </Col>
+          ))}
+          {filteredProducts.length === 0 && (
+            <div className="text-center text-muted mt-5">
+              No se encontraron componentes que coincidan con la búsqueda.
+            </div>
+          )}
+        </Row>
+      )}
     </Container>
   );
 };
