@@ -1,25 +1,31 @@
 const express = require('express');
 require('dotenv').config();
+const db = require('./config/db');
 
-// Importar rutas
+// Importación de rutas de la plataforma
 const authRoutes = require('./routes/authRoutes');
 const cadRoutes = require('./routes/cadRoutes');
+const productoRoutes = require('./routes/productoRoutes');
 
 const app = express();
 
-// Middleware para leer JSON en el body de las peticiones
+// Middleware obligatorio para procesar solicitudes JSON
 app.use(express.json());
 
-// Registrar las rutas en Express
+// Registro de Módulos de la API
 app.use('/api/auth', authRoutes);
 app.use('/api/cad', cadRoutes);
+app.use('/api/productos', productoRoutes);
 
-// Ruta base de prueba
 app.get('/', (req, res) => {
-    res.send('🚀 Servidor Backend funcionando correctamente.');
+    res.send('🚀 Servidor Backend de FabriConnect funcionando correctamente.');
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+
+// Primero inicializamos/verificamos la BD y luego encendemos el servidor
+db.initDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    });
 });
