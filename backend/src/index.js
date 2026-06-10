@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // <-- LÍNEA AÑADIDA: Importamos CORS
 require('dotenv').config();
 const db = require('./config/db');
 
@@ -8,6 +9,9 @@ const cadRoutes = require('./routes/cadRoutes');
 const productoRoutes = require('./routes/productoRoutes');
 
 const app = express();
+
+// <-- LÍNEA AÑADIDA: Habilitamos CORS para que React pueda comunicarse con Node
+app.use(cors()); 
 
 // Middleware obligatorio para procesar solicitudes JSON
 app.use(express.json());
