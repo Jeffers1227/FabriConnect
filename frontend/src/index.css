@@ -1,0 +1,73 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+:root {
+  --primary-blue: #0062cc; /* Blue from mockup */
+  --primary-blue-hover: #0056b3;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --text-main: #333333;
+  --border-color: #e0e0e0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar */
+.navbar-custom {
+  background-color: var(--primary-blue) !important;
+}
+.navbar-custom .navbar-brand, .navbar-custom .nav-link {
+  color: white !important;
+}
+
+/* Buttons */
+.btn-primary-custom {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--primary-blue-hover);
+  border-color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+}
+
+.btn-outline-custom {
+  color: var(--text-main);
+  border-color: #ced4da;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+}
+.btn-outline-custom:hover {
+  background-color: #f8f9fa;
+  color: var(--primary-blue);
+}
+
+/* Glassmorphism Cards */
+.card-glass {
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
