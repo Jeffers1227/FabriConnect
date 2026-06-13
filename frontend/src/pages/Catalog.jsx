@@ -1,75 +1,35 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Catalog() {
+export default function Catalog({ addToCart }) {
   const [productos, setProductos] = useState([]);
-  const [busqueda, setBusqueda] = useState('');
-
-  const cargarProductos = async (filtro = '') => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/productos?buscar=${filtro}`);
-      const data = await res.json();
-      setProductos(data);
-    } catch (err) {
-      console.error("Error al cargar el catálogo", err);
-    }
-  };
 
   useEffect(() => {
-    cargarProductos();
+    fetch('http://localhost:3000/api/productos')
+      .then(res => res.json())
+      .then(data => setProductos(Array.isArray(data) ? data : []));
   }, []);
 
-  const handleBuscar = (e) => {
-    e.preventDefault();
-    cargarProductos(busqueda);
-  };
-
   return (
-    <div class="container">
-      <div class="row mb-4">
-        <div class="col-md-8 mx-auto">
-          <form class="d-flex shadow-sm" onSubmit={handleBuscar}>
-            <input 
-              class="form-control form-control-lg me-2" 
-              type="search" 
-              placeholder="Buscar componentes técnicos (ej. Microcontrolador, sensor)..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-            <button class="btn btn-primary btn-lg" type="submit">Buscar</button>
-          </form>
-        </div>
-      </div>
-
-      <h3 class="mb-4 text-secondary">Componentes Disponibles</h3>
-      <div class="row">
+    <div className="container py-5 mt-5">
+      <h2 className="text-white fw-bold mb-5 text-center">Catálogo Tecnológico</h2>
+      <div className="row g-4">
         {productos.map((prod) => (
-          <div class="col-md-4 mb-4" key={prod.id}>
-            <div class="card h-100 shadow-sm">
-              <div class="card-body">
-                <span class="badge bg-secondary mb-2">{prod.proveedor}</span>
-                <h5 class="card-title fw-bold text-dark">{prod.nombre}</h5>
-                <p class="card-text text-muted small">{prod.descripcion}</p>
-                
-                {prod.especificaciones && (
-                  <div class="bg-light p-2 rounded mb-3 small">
-                    <strong>Especificaciones:</strong>
-                    <ul class="mb-0 ps-3">
-                      {Object.entries(prod.especificaciones).map(([key, val]) => (
-                        <li key={key}><strong>{key}:</strong> {Array.isArray(val) ? val.join(', ') : val}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <span class="text-primary fs-5 fw-bold">S/ {parseFloat(prod.precio).toFixed(2)}</span>
-                  <span class="badge bg-success-subtle text-success">Stock: {prod.stock} u</span>
-                </div>
+          <div className="col-lg-3 col-md-4" key={prod.id}>
+            <div className="card h-100 p-0 border-0 shadow-sm glass-effect">
+              {/* Imagen con un degradado encima para que el texto siempre se lea */}
+              <div style={{height: '180px', background: '#334155', borderRadius: '20px 20px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                 <i className="bi bi-cpu text-white-50" style={{fontSize: '3rem'}}></i>
               </div>
-              <div class="card-footer bg-transparent border-top-0 p-3">
-                <button class="btn btn-outline-primary w-100 btn-sm">
-                  <i class="bi bi-cart-plus me-1"></i> Añadir al Carrito
-                </button>
+              <div className="card-body p-4 text-white">
+                <span className="badge bg-warning text-dark mb-2 rounded-pill">{prod.proveedor}</span>
+                <h5 className="fw-bold text-white">{prod.nombre}</h5>
+                <p className="text-white-50 small mb-4">{prod.descripcion}</p>
+                <div className="d-flex justify-content-between align-items-center mt-auto">
+                  <h4 className="fw-bold text-white">S/ {parseFloat(prod.precio).toFixed(2)}</h4>
+                  <button className="btn btn-premium" onClick={() => addToCart(prod)}>
+                    <i className="bi bi-cart-plus"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
