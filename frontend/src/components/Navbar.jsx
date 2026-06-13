@@ -1,42 +1,29 @@
 import React from 'react';
 
-export default function Navbar({ usuario, setVista, logout }) {
+export default function Navbar({ usuario, setVista, logout, cartCount }) {
   return (
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-      <div class="container">
-        <a class="navbar-brand fw-bold" href="#" onClick={() => setVista('catalogo')}>
-          <i class="bi bi-cpu-fill me-2"></i>FabriConnect
+    <nav className="navbar navbar-expand-lg navbar-dark fixed-top" style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)' }}>
+      <div className="container">
+        <a className="navbar-brand fw-bold fs-3 text-white" href="#" onClick={() => setVista('catalogo')}>
+          Fabri<span style={{color: '#f97316'}}>Connect</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="#" onClick={() => setVista('catalogo')}>Catálogo Técnico</a>
-            </li>
-            {usuario && (
-              <li class="nav-item">
-                <a class="nav-link" href="#" onClick={() => setVista('cad')}>Solicitar Fabricación</a>
-              </li>
-            )}
-          </ul>
-          <div class="d-flex align-items-center">
+        <div className="d-flex align-items-center">
+            <button className="btn btn-outline-light btn-sm position-relative me-3 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
+                <i className="bi bi-cart3"></i>
+                {cartCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{cartCount}</span>}
+            </button>
             {usuario ? (
-              <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-person-circle me-1"></i> {usuario.nombre} ({usuario.rol})
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><button class="dropdown-item" onClick={logout}>Cerrar Sesión</button></li>
-                </ul>
-              </div>
+                <div className="dropdown">
+                    <button className="btn btn-outline-light dropdown-toggle rounded-pill" data-bs-toggle="dropdown">
+                        {usuario.nombre}
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end" style={{background: '#1e293b'}}>
+                        <li><button className="dropdown-item text-white" onClick={logout}>Cerrar Sesión</button></li>
+                    </ul>
+                </div>
             ) : (
-              <button class="btn btn-outline-light btn-sm" onClick={() => setVista('login')}>
-                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
-              </button>
+                <button className="btn btn-premium" onClick={() => setVista('login')}>Ingresar</button>
             )}
-          </div>
         </div>
       </div>
     </nav>
