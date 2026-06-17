@@ -1,111 +1,207 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/* --- CORRECCIÓN DE CONTRASTE PARA FORMULARIOS Y TARJETAS --- */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+.glass-card {
+  background: rgba(15, 23, 42, 0.6) !important; /* Fondo más sólido para mejorar lectura */
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* Inputs Premium (Fondo oscuro, texto blanco) */
+.dark-input {
+  background-color: #1e293b !important; /* Gris/Azul sólido */
+  border: 1px solid #334155 !important;
+  color: #ffffff !important; /* Texto blanco puro al escribir */
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease;
 }
 
-body {
-  margin: 0;
+/* Estado cuando haces clic en el input */
+.dark-input:focus {
+  background-color: #0f172a !important;
+  border-color: #06B6D4 !important; /* Borde Cian Neón */
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15) !important;
+  outline: none;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+/* Color del texto de ayuda (placeholder) */
+.dark-input::placeholder {
+  color: #94a3b8 !important; /* Gris claro para que se lea perfectamente */
+  opacity: 1;
+}
+
+/* Iconos dentro de los inputs */
+.input-group-text.dark-input {
+  background-color: #1e293b !important;
+  color: #06B6D4 !important; /* Icono en color Cian */
+  border: 1px solid #334155 !important;
+}
+
+/* Pequeñas etiquetas de los inputs */
+.form-label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* =========================================
+   ESTILOS DEL DASHBOARD ADMINISTRADOR (SaaS)
+   ========================================= */
+
+/* Layout Principal del Dashboard */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #090E17; /* Fondo ultra oscuro */
+}
+
+/* Barra lateral izquierda (Sidebar) */
+.admin-sidebar {
+  width: 280px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  position: fixed;
+  height: 100vh;
+  z-index: 1000;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
+/* Área de contenido a la derecha */
+.admin-content {
+  flex: 1;
+  margin-left: 280px; /* Compensa el sidebar fijo */
+  padding: 2.5rem;
+  min-height: 100vh;
+}
+
+/* Menú lateral interactivo */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
   font-weight: 500;
-  color: var(--text-h);
+  cursor: pointer;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.sidebar-link:hover, .sidebar-link.active {
+  background: rgba(139, 92, 246, 0.15); /* Fondo Morado transparente */
+  color: #c4b5fd; /* Texto Morado claro */
+  border-right: 3px solid #8B5CF6;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* Tarjetas de Indicadores (KPIs) */
+.kpi-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.kpi-card:hover {
+  transform: translateY(-5px);
+  border-color: #8B5CF6; /* Acento Morado al pasar el mouse */
+}
+
+/* Etiquetas de estado de pedidos */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-pending { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+.status-transit { background: rgba(6, 182, 212, 0.15); color: #06B6D4; border: 1px solid rgba(6,182,212,0.3); }
+.status-delivered { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+
+/* Tabla Glassmorphism */
+.glass-table {
+  width: 100%;
+  color: #f8fafc;
+  border-collapse: separate;
+  border-spacing: 0 10px; /* Separación entre filas */
+}
+
+.glass-table th {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  padding: 0 1rem 10px 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.glass-table td {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem;
+}
+
+.glass-table tr td:first-child { border-radius: 12px 0 0 12px; }
+.glass-table tr td:last-child { border-radius: 0 12px 12px 0; }
+.glass-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
+
+/* =========================================
+   ESTILOS DE LA APP MÓVIL (MOTORIZADO)
+   ========================================= */
+
+.driver-layout {
+  background-color: #090E17;
+  min-height: 100vh;
+  padding-bottom: 80px; /* Espacio para que la barra no tape el contenido */
+}
+
+/* Barra de Navegación Inferior (Bottom Navbar) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  padding-bottom: env(safe-area-inset-bottom, 15px); /* Para iPhone */
+  z-index: 1000;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+}
+
+.nav-item.active {
+  color: #06B6D4; /* Cian Neón */
+  transform: translateY(-3px);
+}
+
+/* Tarjetas de ruta */
+.route-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-left: 4px solid #06B6D4;
+  border-radius: 16px;
 }
