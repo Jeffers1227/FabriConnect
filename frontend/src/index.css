@@ -1,34 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+/* --- CORRECCIÓN DE CONTRASTE PARA FORMULARIOS Y TARJETAS --- */
 
-:root {
-  --navy: #0f172a;
-  --accent: #f97316;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-}
-
-body {
-  background: var(--navy) !important;
-  color: var(--text-primary) !important;
-  font-family: 'Outfit', sans-serif;
-}
-
-/* Forzar que los textos de Bootstrap no sean negros */
-.text-dark { color: var(--text-primary) !important; }
-.text-muted { color: var(--text-secondary) !important; }
-
-/* Tarjetas Premium */
-.card {
-  background: rgba(255, 255, 255, 0.03) !important;
+.glass-card {
+  background: rgba(15, 23, 42, 0.6) !important; /* Fondo más sólido para mejorar lectura */
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 20px !important;
-  color: white !important;
+  color: #f8fafc !important;
 }
 
-/* Botones */
-.btn-premium {
-  background: var(--accent) !important;
-  color: white !important;
-  border-radius: 50px !important;
-  padding: 10px 25px !important;
+/* Inputs Premium (Fondo oscuro, texto blanco) */
+.dark-input {
+  background-color: #1e293b !important; /* Gris/Azul sólido */
+  border: 1px solid #334155 !important;
+  color: #ffffff !important; /* Texto blanco puro al escribir */
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease;
+}
+
+/* Estado cuando haces clic en el input */
+.dark-input:focus {
+  background-color: #0f172a !important;
+  border-color: #06B6D4 !important; /* Borde Cian Neón */
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15) !important;
+  outline: none;
+}
+
+/* Color del texto de ayuda (placeholder) */
+.dark-input::placeholder {
+  color: #94a3b8 !important; /* Gris claro para que se lea perfectamente */
+  opacity: 1;
+}
+
+/* Iconos dentro de los inputs */
+.input-group-text.dark-input {
+  background-color: #1e293b !important;
+  color: #06B6D4 !important; /* Icono en color Cian */
+  border: 1px solid #334155 !important;
+}
+
+/* Pequeñas etiquetas de los inputs */
+.form-label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
