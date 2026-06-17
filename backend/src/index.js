@@ -7,6 +7,7 @@ const db = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const cadRoutes = require('./routes/cadRoutes');
 const productoRoutes = require('./routes/productoRoutes');
+const pedidoRoutes = require('./routes/pedidoRoutes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/cad', cadRoutes);
 app.use('/api/productos', productoRoutes);
+app.use('/api/pedidos', pedidoRoutes);
 
 app.get('/', (req, res) => {
     res.send('🚀 Servidor Backend de FabriConnect funcionando correctamente.');
