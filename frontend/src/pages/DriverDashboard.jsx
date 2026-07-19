@@ -1,56 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { Map, PackageCheck, Wallet, User, MapPin, Navigation, CheckCircle, Clock } from 'lucide-react';
+import { Map, PackageCheck, Wallet, User, MapPin, Navigation, CheckCircle, AlertTriangle } from 'lucide-react';
 
-export default function DriverDashboard({ setVista, logout }) {
+export default function DriverDashboard({ setVista, logout, usuario }) {
   const [activeTab, setActiveTab] = useState('rutas');
   const [pedidos, setPedidos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // ESTADO: Guardamos el ID real del motorizado
+  const [myId, setMyId] = useState(usuario?.id || null);
 
-  // Cargar pedidos desde la BD
   useEffect(() => {
-    fetch('http://localhost:3000/api/pedidos')
-      .then(res => res.json())
-      .then(data => setPedidos(Array.isArray(data) ? data : []))
-      .catch(err => console.error("Error al cargar pedidos:", err));
-  }, []);
+    const token = localStorage.getItem('token');
 
-  // Función para completar la entrega en la BD
+    // 1. AUTO-DESCUBRIMIENTO DE ID (Por si el Login no mandó el ID numérico)
+    if (!myId && usuario?.email) {
+        fetch('http://localhost:3000/api/usuarios/motorizados', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data)) {
+                // Comparamos los correos ignorando mayúsculas/minúsculas por seguridad
+                const yo = data.find(m => m.email.toLowerCase() === usuario.email.toLowerCase());
+                if (yo) {
+                    setMyId(yo.id);
+                }
+            }
+        })
+        .catch(err => console.error("Error buscando ID:", err));
+    }
+
+    // 2. SINCRONIZACIÓN DE PEDIDOS (Polling)
+    const cargarPedidosMotorizado = () => {
+      fetch('http://localhost:3000/api/pedidos')
+        .then(res => res.json())
+        .then(data => setPedidos(Array.isArray(data) ? data : []))
+        .catch(err => console.error("Error sincronizando pedidos:", err));
+    };
+
+    cargarPedidosMotorizado();
+    const intervalo = setInterval(() => { cargarPedidosMotorizado(); }, 5000);
+    
+    return () => clearInterval(intervalo);
+  }, [myId, usuario]);
+
   const completarEntrega = async (id) => {
     setIsLoading(true);
     try {
       const res = await fetch(`http://localhost:3000/api/pedidos/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: 'Entregado' })
+        body: JSON.stringify({ estado: 'Entregado' }) 
       });
       
       if (res.ok) {
         setPedidos(pedidos.map(p => p.id === id ? { ...p, estado: 'Entregado' } : p));
         alert("✅ Entrega registrada exitosamente. Notificando al administrador...");
       }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (error) { console.error("Error:", error); } 
+    finally { setIsLoading(false); }
   };
 
-  // Filtrado de pedidos según estado
-  const pedidosActivos = pedidos.filter(p => p.estado === 'En Ruta');
-  const pedidosCompletados = pedidos.filter(p => p.estado === 'Entregado');
+  // ==========================================
+  // FILTRADO ESTRICTO
+  // ==========================================
+  const misPedidos = pedidos.filter(p => 
+      p.motorizado_id && 
+      myId && 
+      Number(p.motorizado_id) === Number(myId)
+  );
   
-  // Cálculo de ganancias (Ejemplo: 15% del total del pedido va para el motorizado)
+  const pedidosActivos = misPedidos.filter(p => p.estado === 'En Ruta');
+  const pedidosCompletados = misPedidos.filter(p => p.estado === 'Entregado');
   const gananciasTotales = pedidosCompletados.reduce((sum, p) => sum + (parseFloat(p.total) * 0.15), 0);
 
   return (
     <div className="driver-layout animate__animated animate__fadeIn">
       
+      
+
       {/* HEADER MÓVIL */}
       <div className="bg-dark p-4 rounded-bottom-4 shadow-sm border-bottom border-secondary position-sticky top-0" style={{ zIndex: 100 }}>
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h5 className="text-white fw-bold mb-0">App Repartidor</h5>
-            <span className="badge bg-success text-dark bg-opacity-75"><span className="spinner-grow spinner-grow-sm me-1" style={{width: '10px', height:'10px'}}></span> En línea</span>
+            <span className="badge bg-success text-dark bg-opacity-75">
+              <span className="spinner-grow spinner-grow-sm me-1" style={{width: '10px', height:'10px'}}></span> 
+              Hola, {usuario?.nombre || 'Motorizado'}
+            </span>
           </div>
           <button className="btn btn-sm btn-outline-danger rounded-circle p-2" onClick={logout}>
             <User size={18} />
@@ -71,7 +108,7 @@ export default function DriverDashboard({ setVista, logout }) {
                 <div key={pedido.id} className="card route-card p-3 shadow-lg">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="text-info fw-bold small">ORD-{pedido.id}</span>
-                    <span className="badge bg-warning text-dark">Pendiente de Entrega</span>
+                    <span className="badge bg-warning text-dark">En Camino</span>
                   </div>
                   
                   <h5 className="text-white fw-bold mb-1">{pedido.cliente_nombre}</h5>
@@ -108,12 +145,12 @@ export default function DriverDashboard({ setVista, logout }) {
           </div>
         )}
 
-        {/* PESTAÑA 2: HISTORIAL */}
+        {/* PESTAÑA 2: HISTORIAL INDIVIDUAL */}
         {activeTab === 'historial' && (
           <div className="animate__animated animate__fadeInRight">
-            <h4 className="text-white fw-bold mb-4">Entregas Completadas</h4>
+            <h4 className="text-white fw-bold mb-4">Mis Entregas</h4>
             <div className="d-flex flex-column gap-2">
-              {pedidosCompletados.map(pedido => (
+              {pedidosCompletados.length > 0 ? pedidosCompletados.map(pedido => (
                 <div key={pedido.id} className="bg-dark p-3 rounded-4 border border-secondary d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="text-white mb-1">{pedido.cliente_nombre}</h6>
@@ -121,12 +158,14 @@ export default function DriverDashboard({ setVista, logout }) {
                   </div>
                   <span className="text-white fw-bold">+ S/ {(parseFloat(pedido.total) * 0.15).toFixed(2)}</span>
                 </div>
-              ))}
+              )) : (
+                <p className="text-white-50 text-center py-3">Aún no has completado ninguna entrega.</p>
+              )}
             </div>
           </div>
         )}
 
-        {/* PESTAÑA 3: BILLETERA / GANANCIAS */}
+        {/* PESTAÑA 3: BILLETERA INDIVIDUAL */}
         {activeTab === 'ganancias' && (
           <div className="animate__animated animate__fadeInRight">
             <h4 className="text-white fw-bold mb-4">Mis Ganancias</h4>
@@ -134,12 +173,6 @@ export default function DriverDashboard({ setVista, logout }) {
               <Wallet size={40} className="text-success mx-auto mb-3" />
               <p className="text-white-50 text-uppercase tracking-widest small mb-1">Balance Acumulado</p>
               <h1 className="display-4 fw-bold text-white mb-0">S/ {gananciasTotales.toFixed(2)}</h1>
-            </div>
-            
-            <h6 className="text-white-50 mb-3">Resumen de la semana</h6>
-            <div className="bg-dark p-3 rounded-4 border border-secondary d-flex justify-content-between mb-2">
-              <span className="text-white">Viajes completados</span>
-              <span className="text-info fw-bold">{pedidosCompletados.length}</span>
             </div>
           </div>
         )}

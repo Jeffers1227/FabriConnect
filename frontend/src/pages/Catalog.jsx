@@ -1,100 +1,107 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Tag } from 'lucide-react';
-import CadUpload from './CadUpload';
+import { ShoppingCart, Cpu, Info } from 'lucide-react';
 
-export default function Catalog({ addToCart, token }) {
+export default function Catalog({ addToCart }) {
   const [productos, setProductos] = useState([]);
-  const [busqueda, setBusqueda] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const cargarProductos = async (filtro = '') => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/productos?buscar=${filtro}`);
-      const data = await res.json();
-      setProductos(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setProductos([]);
-    }
-  };
-
-  useEffect(() => { cargarProductos(); }, []);
+  // Jalamos los productos reales de la Base de Datos al cargar la página
+  useEffect(() => {
+    fetch('http://localhost:3000/api/productos')
+      .then(res => res.json())
+      .then(data => {
+        setProductos(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error al cargar el catálogo:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
-    <div id="catalogo" className="container py-5">
-      
-      {/* SECCIÓN 1: Solicitud de Fabricación Integrada */}
-      <div className="mb-5 pb-5 border-bottom border-secondary border-opacity-50">
-        <div className="d-flex align-items-center mb-4">
-           <h2 className="fw-bold text-white mb-0">Fabricación a Medida</h2>
-        </div>
-        {/* Aquí llamamos al componente de CAD directamente dentro del Workspace del cliente */}
-        <CadUpload token={token} />
-      </div>
-
-      {/* SECCIÓN 2: Catálogo E-Commerce */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5">
+    <div className="container py-5 animate__animated animate__fadeIn">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3">
         <div>
-          <h2 className="text-white fw-bold mb-2">Componentes en Stock</h2>
-          <p className="text-white-50">Encuentra sensores, microcontroladores y partes mecánicas listas para envío.</p>
-        </div>
-        
-        {/* Buscador Moderno */}
-        <div className="position-relative mt-3 mt-md-0" style={{ width: '100%', maxWidth: '400px' }}>
-          <Search className="position-absolute text-white-50" style={{ top: '12px', left: '16px' }} size={20} />
-          <input 
-            className="form-control dark-input text-white w-100 shadow-sm" 
-            style={{ paddingLeft: '45px', borderRadius: '50px' }}
-            placeholder="Buscar por placa, motor, material..."
-            value={busqueda}
-            onChange={(e) => {setBusqueda(e.target.value); cargarProductos(e.target.value)}}
-          />
+          <h2 className="fw-bold text-white mb-1 d-flex align-items-center">
+            <Cpu className="me-3 text-info" size={36} /> Catálogo de Componentes
+          </h2>
+          <p className="text-white-50 mb-0">Piezas de alta calidad para tus proyectos de manufactura y robótica.</p>
         </div>
       </div>
 
-      <div className="row g-4">
-        {productos.length > 0 ? productos.map((prod) => (
-          <div className="col-lg-3 col-md-4 col-sm-6 animate__animated animate__fadeInUp" key={prod.id}>
-            <div className="card h-100 p-0 border-0 shadow-lg glass-card overflow-hidden" style={{ backgroundColor: '#1e293b' }}>
-              
-              {/* Imagen Profesional Estable */}
-              <div className="position-relative">
+      {loading ? (
+        <div className="text-center py-5 text-white-50">
+          <div className="spinner-border text-info mb-3" role="status"></div>
+          <h5>Cargando catálogo en tiempo real...</h5>
+        </div>
+      ) : (
+        <div className="row g-4">
+          {productos.map(producto => (
+            <div key={producto.id} className="col-md-6 col-lg-4 col-xl-3">
+              <div className="card glass-card h-100 border-0 shadow-lg position-relative overflow-hidden transition-hover" style={{ backgroundColor: '#1e293b', borderRadius: '16px' }}>
+                
+                {/* LA MAGIA DE LAS IMÁGENES: 
+                  Si producto.imagen_url existe, usa esa. Si está vacío, usa picsum.photos. 
+                  Si el link que pegó el admin está roto (onError), pone un cuadro gris.
+                */}
                 <img 
-                  src={`https://picsum.photos/seed/${prod.id + 10}/400/300`} 
-                  alt={prod.nombre}
-                  className="card-img-top"
-                  style={{ height: '200px', objectFit: 'cover' }}
+                  src={producto.imagen_url ? producto.imagen_url : `https://picsum.photos/seed/${producto.id + 50}/400/300`} 
+                  alt={producto.nombre} 
+                  className="card-img-top" 
+                  style={{ height: '220px', objectFit: 'cover' }} 
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300/334155/94a3b8?text=Imagen+No+Disponible' }}
                 />
-                <span className="position-absolute top-0 end-0 m-3 badge bg-dark text-white border border-secondary shadow-sm">
-                  Stock: {prod.stock}
-                </span>
-              </div>
 
-              <div className="card-body p-4 d-flex flex-column">
-                <div className="mb-3 d-flex align-items-center text-info small fw-bold tracking-widest text-uppercase">
-                  <Tag size={12} className="me-1"/> {prod.proveedor}
-                </div>
+                {/* Etiqueta de Proveedor Flotante */}
+                {producto.proveedor && (
+                  <span className="position-absolute top-0 end-0 bg-dark text-white-50 small px-3 py-1 m-2 rounded-pill shadow" style={{ opacity: 0.85 }}>
+                    {producto.proveedor}
+                  </span>
+                )}
                 
-                <h5 className="fw-bold text-white mb-2 lh-sm">{prod.nombre}</h5>
-                <p className="text-white-50 small mb-4 flex-grow-1">{prod.descripcion.substring(0, 80)}...</p>
-                
-                <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-secondary border-opacity-25">
-                  <div className="d-flex flex-column">
-                    <span className="text-white-50 small">Precio</span>
-                    <h4 className="fw-bold text-white mb-0">S/ {parseFloat(prod.precio).toFixed(2)}</h4>
+                <div className="card-body d-flex flex-column p-4">
+                  <h5 className="text-white fw-bold mb-2 lh-sm">{producto.nombre}</h5>
+                  <p className="text-white-50 small mb-4 flex-grow-1">
+                    {producto.descripcion ? producto.descripcion.substring(0, 80) + '...' : 'Componente estándar de alta precisión para proyectos de ingeniería.'}
+                  </p>
+                  
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                      <span className="d-block text-white-50 small lh-1 mb-1">Precio Unitario</span>
+                      <span className="fs-3 fw-bold text-white lh-1 d-block">S/ {parseFloat(producto.precio).toFixed(2)}</span>
+                    </div>
+                    <div className="text-end">
+                       <span className={`badge ${producto.stock > 5 ? 'bg-success' : producto.stock > 0 ? 'bg-warning text-dark' : 'bg-danger'} rounded-pill px-3 py-2 shadow-sm`}>
+                         {producto.stock > 0 ? `${producto.stock} en Stock` : 'Agotado'}
+                       </span>
+                    </div>
                   </div>
-                  <button className="btn btn-premium rounded-circle shadow-lg" style={{ width: '45px', height: '45px' }} onClick={() => addToCart(prod)}>
-                    <ShoppingCart size={20} />
+
+                  <button 
+                    className={`btn w-100 py-3 rounded-pill fw-bold d-flex justify-content-center align-items-center shadow-lg transition ${producto.stock > 0 ? 'btn-info text-dark hover-scale' : 'btn-secondary disabled'}`}
+                    onClick={() => {
+                        if(producto.stock > 0) addToCart(producto);
+                    }}
+                  >
+                    <ShoppingCart size={20} className="me-2" /> 
+                    {producto.stock > 0 ? 'Añadir al Carrito' : 'Sin Inventario'}
                   </button>
                 </div>
+
               </div>
             </div>
-          </div>
-        )) : (
-          <div className="col-12 text-center py-5">
-            <h4 className="text-white-50 fst-italic">No se encontraron componentes.</h4>
-          </div>
-        )}
-      </div>
+          ))}
+
+          {productos.length === 0 && !loading && (
+            <div className="col-12 text-center py-5">
+              <Info size={48} className="text-white-50 mb-3 opacity-50" />
+              <h4 className="text-white-50">El catálogo está vacío.</h4>
+              <p className="text-muted">El administrador aún no ha registrado productos.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
