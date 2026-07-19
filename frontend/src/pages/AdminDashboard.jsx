@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingCart, Truck, Users, 
-  Settings, LogOut, TrendingUp, DollarSign, Clock, MapPin, Plus, Edit, Trash2, X, Image as ImageIcon
+  Settings, LogOut, DollarSign, Clock, MapPin, Plus, Edit, Trash2, X, Image as ImageIcon, ExternalLink, Search,
+  CheckCircle, CreditCard as CardIcon // <--- ¡AQUÍ ESTÁ LA CORRECCIÓN!
 } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
@@ -29,9 +30,9 @@ export default function AdminDashboard({ setVista, logout }) {
     id: null, nombre: '', email: '', password: ''
   });
 
-  // NUEVO: ESTADOS PARA ASIGNAR RUTA
+  // ESTADOS PARA ASIGNAR RUTA Y VER IMAGEN
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [pedidoToAssign, setPedidoToAssign] = useState(null);
+  const [pedidoToAssign, setPedidoToAssign] = useState(null); 
   const [selectedMotoId, setSelectedMotoId] = useState('');
 
   const [clientes] = useState([
@@ -82,11 +83,10 @@ export default function AdminDashboard({ setVista, logout }) {
     } catch (error) { console.error("Error:", error); }
   };
 
-  // NUEVO: Función que asigna el motorizado al pedido en el backend
   const confirmarAsignacion = async () => {
     if (!selectedMotoId) return alert("Por favor selecciona un repartidor de la lista.");
     try {
-      const res = await fetch(`http://localhost:3000/api/pedidos/${pedidoToAssign}/estado`, {
+      const res = await fetch(`http://localhost:3000/api/pedidos/${pedidoToAssign.id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'En Ruta', motorizado_id: selectedMotoId })
@@ -260,17 +260,21 @@ export default function AdminDashboard({ setVista, logout }) {
                   <tr key={p.id}>
                     <td className="text-white-50">#{p.id}</td><td className="fw-bold text-white">{p.cliente_nombre}</td>
                     <td className="text-white-50"><MapPin size={14} className="text-info me-1"/> {p.direccion.substring(0, 20)}...</td>
-                    <td className="text-uppercase small text-white-50">{p.metodo_pago}</td><td className="text-success fw-bold">S/ {parseFloat(p.total).toFixed(2)}</td>
+                    <td className="text-uppercase small text-white-50">
+                      {p.metodo_pago && p.metodo_pago.toLowerCase().includes('yape') ? 
+                          <span className="badge bg-info text-dark px-2 py-1">YAPE</span> : 
+                          p.metodo_pago}
+                    </td>
+                    <td className="text-success fw-bold">S/ {parseFloat(p.total).toFixed(2)}</td>
                     <td className="text-center">
                       <span className={`status-badge mb-2 d-inline-block ${p.estado === 'Pendiente' ? 'status-pending' : p.estado === 'En Ruta' ? 'status-transit' : 'status-delivered'}`}>{p.estado}</span>
                       
-                      {/* NUEVO BOTÓN: Llama al Modal y guarda qué pedido seleccionamos */}
                       {p.estado === 'Pendiente' && (
                         <button 
-                          className="btn btn-sm btn-primary rounded-pill w-100 shadow" 
-                          onClick={() => { setPedidoToAssign(p.id); setIsAssignModalOpen(true); }}
+                          className="btn btn-sm btn-primary rounded-pill w-100 shadow fw-bold d-flex align-items-center justify-content-center" 
+                          onClick={() => { setPedidoToAssign(p); setIsAssignModalOpen(true); }}
                         >
-                          Asignar Ruta
+                          <Search size={14} className="me-1"/> Validar Pago
                         </button>
                       )}
 
@@ -354,24 +358,73 @@ export default function AdminDashboard({ setVista, logout }) {
         )}
       </main>
 
-      {/* MODAL ASIGNAR RUTA AL MOTORIZADO */}
-      {isAssignModalOpen && (
+      {/* =========================================================================
+          MODAL ASIGNAR RUTA Y VALIDAR PAGO YAPE (CON VISTA DE FOTO CLOUDFLARE R2)
+          ========================================================================= */}
+      {isAssignModalOpen && pedidoToAssign && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center animate__animated animate__fadeIn" style={{zIndex: 3000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)'}}>
-          <div className="card glass-card border-0 shadow-lg p-4" style={{width: '100%', maxWidth: '400px', backgroundColor: '#1e293b'}}>
-            <h4 className="text-white fw-bold mb-3 d-flex align-items-center"><Truck className="me-2 text-info"/> Asignar Repartidor</h4>
-            <p className="text-white-50 small mb-4">Selecciona quién se encargará de entregar la Orden #{pedidoToAssign}.</p>
+          <div className="card glass-card border-0 shadow-lg p-4" style={{width: '100%', maxWidth: '450px', backgroundColor: '#1e293b'}}>
             
+            <div className="d-flex justify-content-between align-items-center border-bottom border-secondary pb-3 mb-3">
+                <h4 className="text-white fw-bold mb-0 d-flex align-items-center"><Truck className="me-2 text-info"/> Validar y Despachar</h4>
+                <button className="btn btn-link text-white-50 p-0" onClick={() => setIsAssignModalOpen(false)}><X size={24}/></button>
+            </div>
+            
+            <p className="text-white-50 small text-center mb-3">Orden #{pedidoToAssign.id} - {pedidoToAssign.cliente_nombre}</p>
+
+            {/* CAJA DE VISUALIZACIÓN DE IMAGEN */}
+            <div className="bg-dark rounded-4 p-3 mb-4 border border-secondary text-center position-relative">
+                <p className="text-white-50 mb-2 small text-uppercase fw-bold">Evidencia de Pago</p>
+                
+                {pedidoToAssign.metodo_pago && pedidoToAssign.metodo_pago.toLowerCase().includes('yape') ? (
+                    pedidoToAssign.comprobante_url ? (
+                        <div className="d-flex flex-column align-items-center">
+                            {/* IMAGEN DE CLOUDFLARE R2 */}
+                            <img 
+                              src={pedidoToAssign.comprobante_url} 
+                              alt="Voucher Yape" 
+                              className="shadow-sm"
+                              style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'contain', border: '1px solid #334155'}} 
+                              onError={(e) => {
+                                e.target.onerror = null; 
+                                e.target.src = "https://via.placeholder.com/400x200/1e293b/dc3545?text=Foto+No+Encontrada";
+                              }}
+                            />
+                            <p className="text-success mt-2 mb-1 fw-bold small d-flex align-items-center"><CheckCircle size={14} className="me-1"/> Captura detectada</p>
+                            
+                            {/* ENLACE PARA ABRIR EN PESTAÑA NUEVA */}
+                            <a 
+                              href={pedidoToAssign.comprobante_url} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="d-inline-flex align-items-center text-info small mt-1 text-decoration-none bg-secondary px-3 py-1 rounded-pill"
+                            >
+                              <ExternalLink size={12} className="me-2"/> Ampliar imagen
+                            </a>
+                        </div>
+                    ) : (
+                        <p className="text-danger fw-bold my-4">❌ El cliente no subió captura de pantalla.</p>
+                    )
+                ) : (
+                    <div className="py-4">
+                      <CardIcon size={40} className="text-info mb-2 opacity-50"/>
+                      <p className="text-info fw-bold mb-0">Tarjeta de Crédito</p>
+                      <small className="text-white-50">Aprobado automáticamente por la pasarela.</small>
+                    </div>
+                )}
+            </div>
+            
+            <p className="text-white-50 small mb-2">Selecciona a qué motorizado le asignarás la ruta:</p>
             <select className="form-select dark-input text-white mb-4 py-3 border-secondary" value={selectedMotoId} onChange={(e) => setSelectedMotoId(e.target.value)}>
-              <option value="">-- Selecciona un motorizado --</option>
+              <option value="">-- Escoge en la lista --</option>
               {motorizados.map(m => (
                 <option key={m.id} value={m.id}>{m.nombre} ({m.email})</option>
               ))}
             </select>
 
-            <div className="d-flex gap-3">
-              <button className="btn btn-outline-secondary text-white w-50 rounded-pill fw-bold" onClick={() => setIsAssignModalOpen(false)}>Cancelar</button>
-              <button className="btn btn-info text-dark w-50 rounded-pill fw-bold" onClick={confirmarAsignacion}>Despachar</button>
-            </div>
+            <button className="btn btn-info text-dark w-100 py-3 rounded-pill fw-bold shadow-lg transition hover-scale" onClick={confirmarAsignacion}>
+                Aprobar Pago y Asignar Ruta
+            </button>
           </div>
         </div>
       )}

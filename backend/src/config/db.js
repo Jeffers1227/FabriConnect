@@ -63,10 +63,16 @@ const initDB = async () => {
             console.log('✅ Columna "imagen_url" garantizada en la tabla productos.');
         } catch (e) {}
 
-        // NUEVO: Garantizamos columna motorizado_id para asignar rutas
+        // Garantizamos columna motorizado_id para asignar rutas
         try {
             await pool.query('ALTER TABLE pedidos ADD COLUMN motorizado_id INT;');
             console.log('✅ Columna "motorizado_id" garantizada en la tabla pedidos.');
+        } catch (e) {}
+        
+        // Garantizamos columna comprobante_url para guardar fotos de Yape
+        try {
+            await pool.query('ALTER TABLE pedidos ADD COLUMN comprobante_url TEXT;');
+            console.log('✅ Columna "comprobante_url" garantizada en la tabla pedidos.');
         } catch (e) {}
 
         // 1. INSERCIÓN DE PRODUCTOS SEMILLA
