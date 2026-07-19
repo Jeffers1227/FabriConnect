@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
-const { verifyToken, verifyRole } = require('../middlewares/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware'); // Solo verifyToken para permitir al Admin
 
 // Ruta pública: Cualquiera puede ver el catálogo
 router.get('/', productoController.obtenerProductos);
 
-// Ruta protegida: Solo usuarios con token válido y con rol 'proveedor' pueden añadir productos
-router.post('/', verifyToken, verifyRole('proveedor'), productoController.crearProducto);
+// Rutas protegidas: Requieren Token válido
+router.post('/', verifyToken, productoController.crearProducto);
+router.put('/:id', verifyToken, productoController.actualizarProducto);
+router.delete('/:id', verifyToken, productoController.eliminarProducto);
 
 module.exports = router;

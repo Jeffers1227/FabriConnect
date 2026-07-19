@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt'); // <-- NUEVO: Importamos bcrypt para cifrar la clave
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const pool = new Pool({
@@ -57,6 +57,18 @@ const initDB = async () => {
         await pool.query(createPedidosTable);
         console.log('✅ Tabla "pedidos" verificada/creada correctamente.');
 
+        // Añadimos la columna de imagen_url si no existe en la base de datos
+        try {
+            await pool.query('ALTER TABLE productos ADD COLUMN imagen_url TEXT;');
+            console.log('✅ Columna "imagen_url" garantizada en la tabla productos.');
+        } catch (e) {}
+
+        // NUEVO: Garantizamos columna motorizado_id para asignar rutas
+        try {
+            await pool.query('ALTER TABLE pedidos ADD COLUMN motorizado_id INT;');
+            console.log('✅ Columna "motorizado_id" garantizada en la tabla pedidos.');
+        } catch (e) {}
+
         // 1. INSERCIÓN DE PRODUCTOS SEMILLA
         const resultadoProductos = await pool.query('SELECT COUNT(*) FROM productos');
         if (parseInt(resultadoProductos.rows[0].count) === 0) {
@@ -87,20 +99,26 @@ const initDB = async () => {
             console.log('🌱 Pedidos de prueba insertados con éxito.');
         }
 
-        // 3. NUEVO: INSERCIÓN AUTOMÁTICA DEL MOTORIZADO
-        // Verificamos si el correo del motorizado ya existe en la base de datos
+        // 3. INSERCIÓN AUTOMÁTICA DEL MOTORIZADO
         const resMoto = await pool.query("SELECT * FROM usuarios WHERE email = 'moto@fabriconnect.com'");
-        
         if (resMoto.rows.length === 0) {
-            // Encriptamos la clave '123456' para que el Login no la rechace
             const hashedPwd = await bcrypt.hash('123456', 10);
-            
-            // Insertamos al usuario con rol 'motorizado'
             await pool.query(
                 `INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4)`,
                 ['Carlos Repartidor', 'moto@fabriconnect.com', hashedPwd, 'motorizado']
             );
             console.log('🏍️ Usuario Motorizado (moto@fabriconnect.com) creado automáticamente.');
+        }
+
+        // 4. INSERCIÓN AUTOMÁTICA DEL ADMIN
+        const resAdmin = await pool.query("SELECT * FROM usuarios WHERE email = 'admin@fabriconnect.com'");
+        if (resAdmin.rows.length === 0) {
+            const hashedAdminPwd = await bcrypt.hash('123456', 10);
+            await pool.query(
+                `INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4)`,
+                ['Administrador Principal', 'admin@fabriconnect.com', hashedAdminPwd, 'administrador']
+            );
+            console.log('🛡️ Usuario Administrador (admin@fabriconnect.com) creado automáticamente.');
         }
 
     } catch (err) {
