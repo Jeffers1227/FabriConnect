@@ -47,65 +47,59 @@ const initDB = async () => {
         );
     `;
 
+    // ==========================================
+    // NUEVA TABLA: SOLICITUDES CAD / IMPRESIÓN 3D
+    // ==========================================
+    const createSolicitudesTable = `
+        CREATE TABLE IF NOT EXISTS solicitudes_cad (
+            id SERIAL PRIMARY KEY,
+            cliente_nombre VARCHAR(255) NOT NULL,
+            cliente_email VARCHAR(255) NOT NULL,
+            cliente_dni VARCHAR(20) NOT NULL,
+            material VARCHAR(50),
+            infill VARCHAR(50),
+            color VARCHAR(50),
+            medidas VARCHAR(100),
+            comentarios TEXT,
+            archivo_url TEXT NOT NULL,
+            estado VARCHAR(50) DEFAULT 'Pendiente de Revisión',
+            precio_cotizado DECIMAL(10, 2) DEFAULT 0.00,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+
     try {
         await pool.query(createUsuariosTable);
-        console.log('✅ Tabla "usuarios" verificada/creada correctamente.');
+        console.log('✅ Tabla "usuarios" verificada/creada.');
 
         await pool.query(createProductosTable);
-        console.log('✅ Tabla "productos" verificada/creada correctamente.');
+        console.log('✅ Tabla "productos" verificada/creada.');
 
         await pool.query(createPedidosTable);
-        console.log('✅ Tabla "pedidos" verificada/creada correctamente.');
+        console.log('✅ Tabla "pedidos" verificada/creada.');
 
-        // Añadimos la columna de imagen_url si no existe en la base de datos
-        try {
-            await pool.query('ALTER TABLE productos ADD COLUMN imagen_url TEXT;');
-            console.log('✅ Columna "imagen_url" garantizada en la tabla productos.');
-        } catch (e) {}
+        await pool.query(createSolicitudesTable);
+        console.log('✅ Tabla "solicitudes_cad" verificada/creada.');
 
-        // Garantizamos columna motorizado_id para asignar rutas
-        try {
-            await pool.query('ALTER TABLE pedidos ADD COLUMN motorizado_id INT;');
-            console.log('✅ Columna "motorizado_id" garantizada en la tabla pedidos.');
-        } catch (e) {}
-        
-        // Garantizamos columna comprobante_url para guardar fotos de Yape
-        try {
-            await pool.query('ALTER TABLE pedidos ADD COLUMN comprobante_url TEXT;');
-            console.log('✅ Columna "comprobante_url" garantizada en la tabla pedidos.');
-        } catch (e) {}
+        // Modificaciones a tablas existentes
+        try { await pool.query('ALTER TABLE productos ADD COLUMN imagen_url TEXT;'); } catch (e) {}
+        try { await pool.query('ALTER TABLE pedidos ADD COLUMN motorizado_id INT;'); } catch (e) {}
+        try { await pool.query('ALTER TABLE pedidos ADD COLUMN comprobante_url TEXT;'); } catch (e) {}
 
-        // 1. INSERCIÓN DE PRODUCTOS SEMILLA
+        // Inserción de Productos Semilla...
         const resultadoProductos = await pool.query('SELECT COUNT(*) FROM productos');
         if (parseInt(resultadoProductos.rows[0].count) === 0) {
             const insertSeedQuery = `
                 INSERT INTO productos (nombre, descripcion, precio, stock, proveedor, especificaciones) VALUES
-                ('Raspberry Pi 4 Model B 4GB', 'Microcomputadora de placa reducida ideal para proyectos de robótica avanzada.', 285.00, 30, 'TechPorts Inc.', '{"procesador": "Broadcom BCM2711", "RAM": "4GB LPDDR4"}'),
-                ('Sensor Ultrasónico HC-SR04', 'Sensor de distancia por ultrasonido, compatible con Arduino.', 9.50, 500, 'SensorCorp', '{"rango_medicion": "2cm - 400cm"}'),
-                ('Motor Paso a Paso NEMA 17', 'Motor paso a paso bipolar de alta precisión para impresoras 3D.', 48.00, 120, 'ElectroTech', '{"torque": "4.2 kg-cm"}'),
-                ('Servomotor Micro SG90', 'Micro servomotor de 9g para pequeños mecanismos.', 12.00, 300, 'MecaParts', '{"torque": "1.8 kg-cm"}'),
-                ('Módulo Bluetooth HC-05', 'Módulo Bluetooth maestro/esclavo para comunicación inalámbrica.', 18.50, 200, 'Wireless Solutions', '{"alcance": "10 metros"}'),
-                ('Driver de Motor L298N', 'Controlador dual para motores DC y paso a paso.', 15.00, 150, 'TechPorts Inc.', '{"corriente_max": "2A"}'),
-                ('Filamento PLA Premium', 'Rollo de 1kg de ácido poliláctico para impresión 3D.', 65.00, 80, '3D Maker Peru', '{"material": "PLA"}'),
-                ('Perfil de Aluminio V-Slot', 'Perfil estructural anodizado para chasis CNC.', 25.00, 250, 'MecaParts', '{"longitud": "1000mm"}');
+                ('Raspberry Pi 4 Model B 4GB', 'Microcomputadora ideal para proyectos robóticos.', 285.00, 30, 'TechPorts Inc.', '{"procesador": "Broadcom BCM2711"}'),
+                ('Sensor Ultrasónico HC-SR04', 'Sensor de distancia por ultrasonido.', 9.50, 500, 'SensorCorp', '{"rango_medicion": "2cm - 400cm"}'),
+                ('Motor Paso a Paso NEMA 17', 'Motor paso a paso bipolar.', 48.00, 120, 'ElectroTech', '{"torque": "4.2 kg-cm"}'),
+                ('Filamento PLA Premium', 'Rollo de 1kg para impresión 3D.', 65.00, 80, '3D Maker Peru', '{"material": "PLA"}')
             `;
             await pool.query(insertSeedQuery);
-            console.log('🌱 Catálogo inicial insertado con éxito.');
         }
 
-        // 2. INSERCIÓN DE PEDIDOS DE PRUEBA
-        const resPed = await pool.query('SELECT COUNT(*) FROM pedidos');
-        if (parseInt(resPed.rows[0].count) === 0) {
-            await pool.query(`
-                INSERT INTO pedidos (cliente_nombre, total, metodo_pago, direccion, estado) VALUES 
-                ('Tech Startup SAC', 450.50, 'tarjeta', 'San Isidro, Lima', 'Pendiente'),
-                ('Laboratorio UNI', 120.00, 'yape', 'Rímac, Lima', 'En Ruta'),
-                ('Maker Space', 85.00, 'tarjeta', 'Miraflores, Lima', 'Entregado');
-            `);
-            console.log('🌱 Pedidos de prueba insertados con éxito.');
-        }
-
-        // 3. INSERCIÓN AUTOMÁTICA DEL MOTORIZADO
+        // Motorizado Automático
         const resMoto = await pool.query("SELECT * FROM usuarios WHERE email = 'moto@fabriconnect.com'");
         if (resMoto.rows.length === 0) {
             const hashedPwd = await bcrypt.hash('123456', 10);
@@ -113,10 +107,9 @@ const initDB = async () => {
                 `INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4)`,
                 ['Carlos Repartidor', 'moto@fabriconnect.com', hashedPwd, 'motorizado']
             );
-            console.log('🏍️ Usuario Motorizado (moto@fabriconnect.com) creado automáticamente.');
         }
 
-        // 4. INSERCIÓN AUTOMÁTICA DEL ADMIN
+        // Admin Automático
         const resAdmin = await pool.query("SELECT * FROM usuarios WHERE email = 'admin@fabriconnect.com'");
         if (resAdmin.rows.length === 0) {
             const hashedAdminPwd = await bcrypt.hash('123456', 10);
@@ -124,11 +117,10 @@ const initDB = async () => {
                 `INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4)`,
                 ['Administrador Principal', 'admin@fabriconnect.com', hashedAdminPwd, 'administrador']
             );
-            console.log('🛡️ Usuario Administrador (admin@fabriconnect.com) creado automáticamente.');
         }
 
     } catch (err) {
-        console.error('❌ Error al inicializar las tablas de la base de datos:', err);
+        console.error('❌ Error al inicializar la base de datos:', err);
     }
 };
 

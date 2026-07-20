@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Catalog from './pages/Catalog';
 import Login from './pages/Login';
-import CadUpload from './pages/CadUpload';
+import SubirCAD from './pages/SubirCAD'; 
+import MisCotizaciones from './pages/MisCotizaciones'; // <-- NUEVO: Importamos la vista de cotizaciones
 import CartOffcanvas from './components/CartOffcanvas';
 import Checkout from './pages/Checkout';
 import Hero from './components/Hero';
@@ -52,12 +53,15 @@ export default function App() {
             localStorage.setItem('usuario', JSON.stringify(u)); 
         }} setVista={setVista} />}
         
-        {vista === 'cad' && <CadUpload token={token} />}
+        {vista === 'subircad' && <SubirCAD setVista={setVista} />}
+        
+        {/* NUEVO: RUTA PARA MIS COTIZACIONES */}
+        {vista === 'mis_cotizaciones' && <MisCotizaciones setVista={setVista} />}
+        
         {vista === 'checkout' && <Checkout cartItems={cartItems} setVista={setVista} />}
         
         {vista === 'admin' && <AdminDashboard setVista={setVista} logout={logout} />}
 
-        {/* CORRECCIÓN: Le pasamos la prop "usuario" al DriverDashboard */}
         {vista === 'motorizado' && <DriverDashboard setVista={setVista} logout={logout} usuario={usuario} />}
       </main>
     </div>

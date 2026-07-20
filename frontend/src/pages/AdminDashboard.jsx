@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingCart, Truck, Users, 
   Settings, LogOut, DollarSign, Clock, MapPin, Plus, Edit, Trash2, X, Image as ImageIcon, ExternalLink, Search,
-  CheckCircle, CreditCard as CardIcon // <--- ¡AQUÍ ESTÁ LA CORRECCIÓN!
+  CheckCircle, CreditCard as CardIcon, Box, Download, Cpu // <-- Añadimos los iconos para CAD
 } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
@@ -17,6 +17,7 @@ export default function AdminDashboard({ setVista, logout }) {
   const [pedidos, setPedidos] = useState([]);
   const [productos, setProductos] = useState([]);
   const [motorizados, setMotorizados] = useState([]); 
+  const [solicitudesCad, setSolicitudesCad] = useState([]); // ESTADO PARA LAS SOLICITUDES 3D
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('crear');
@@ -30,10 +31,15 @@ export default function AdminDashboard({ setVista, logout }) {
     id: null, nombre: '', email: '', password: ''
   });
 
-  // ESTADOS PARA ASIGNAR RUTA Y VER IMAGEN
+  // ESTADOS PARA ASIGNAR RUTA Y VER IMAGEN DE PAGO
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [pedidoToAssign, setPedidoToAssign] = useState(null); 
   const [selectedMotoId, setSelectedMotoId] = useState('');
+
+  // ESTADOS PARA EL MODAL DE COTIZACIÓN CAD
+  const [isCotizarModalOpen, setIsCotizarModalOpen] = useState(false);
+  const [selectedCad, setSelectedCad] = useState(null);
+  const [precioCotizado, setPrecioCotizado] = useState('');
 
   const [clientes] = useState([
     { id: 1, nombre: 'Jefferson Silva', dni: '71234567', correo: 'jefferson@gmail.com', telefono: '987123456', total_compras: 2 },
@@ -58,6 +64,11 @@ export default function AdminDashboard({ setVista, logout }) {
     fetch('http://localhost:3000/api/productos')
       .then(res => res.json()).then(data => setProductos(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error al sincronizar productos:", err));
+
+    // CARGAR LAS SOLICITUDES CAD DESDE EL BACKEND
+    fetch('http://localhost:3000/api/cad')
+      .then(res => res.json()).then(data => setSolicitudesCad(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error al sincronizar CAD:", err));
 
     if (token) {
       fetch('http://localhost:3000/api/usuarios/motorizados', {
@@ -97,6 +108,32 @@ export default function AdminDashboard({ setVista, logout }) {
         cargarDatos();
       }
     } catch (error) { console.error("Error:", error); }
+  };
+
+  // ENVIAR COTIZACIÓN TÉCNICA (PRECIO) AL BACKEND
+  const enviarPrecioCotizacion = async (e) => {
+    e.preventDefault();
+    if (!precioCotizado || isNaN(precioCotizado)) return alert("Por favor, ingresa un precio válido.");
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/cad/${selectedCad.id}/cotizar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ precio_cotizado: parseFloat(precioCotizado) })
+      });
+
+      if (res.ok) {
+        alert("💸 ¡Cotización enviada de manera exitosa! El estado se ha actualizado.");
+        setIsCotizarModalOpen(false);
+        setPrecioCotizado('');
+        cargarDatos();
+      } else {
+        alert("Error al procesar la cotización en la base de datos.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error de conexión con el servidor.");
+    }
   };
 
   const openModal = (modo, producto = null) => {
@@ -187,6 +224,17 @@ export default function AdminDashboard({ setVista, logout }) {
         <nav className="d-flex flex-column gap-2 flex-grow-1">
           <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveMenu('dashboard')}><LayoutDashboard className="me-3" size={20} /> Overview</button>
           <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'pedidos' ? 'active' : ''}`} onClick={() => setActiveMenu('pedidos')}><ShoppingCart className="me-3" size={20} /> Gestión de Pedidos</button>
+          
+          {/* MENÚ LATERAL: SOLICITUDES CAD */}
+          <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'solicitudes_cad' ? 'active' : ''}`} onClick={() => setActiveMenu('solicitudes_cad')}>
+            <Box className="me-3" size={20} /> Solicitudes CAD 
+            {solicitudesCad.filter(s => s.estado.includes('Revisión')).length > 0 && (
+              <span className="badge bg-danger ms-auto rounded-circle small px-2">
+                {solicitudesCad.filter(s => s.estado.includes('Revisión')).length}
+              </span>
+            )}
+          </button>
+
           <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'productos' ? 'active' : ''}`} onClick={() => setActiveMenu('productos')}><Package className="me-3" size={20} /> Inventario / CAD</button>
           <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'motorizados' ? 'active' : ''}`} onClick={() => setActiveMenu('motorizados')}><Truck className="me-3" size={20} /> Motorizados (CRUD)</button>
           <button className={`sidebar-link w-100 text-start border-0 bg-transparent ${activeMenu === 'clientes' ? 'active' : ''}`} onClick={() => setActiveMenu('clientes')}><Users className="me-3" size={20} /> Clientes B2B/B2C</button>
@@ -203,11 +251,12 @@ export default function AdminDashboard({ setVista, logout }) {
             <h2 className="text-white fw-bold mb-1">
               {activeMenu === 'dashboard' && 'Panel de Control'}
               {activeMenu === 'pedidos' && 'Gestión de Pedidos'}
+              {activeMenu === 'solicitudes_cad' && 'Laboratorio de Prototipado (CAD)'}
               {activeMenu === 'productos' && 'Inventario de Componentes'}
               {activeMenu === 'motorizados' && 'Gestión de Logística'}
               {activeMenu === 'clientes' && 'Directorio de Clientes'}
             </h2>
-            <p className="text-white-50 mb-0">Administración general de la plataforma.</p>
+            <p className="text-white-50 mb-0">Administración general de la plataforma FabriConnect.</p>
           </div>
           <div className="d-flex align-items-center gap-3">
             <button className="btn btn-outline-light rounded-circle p-2"><Settings size={20}/></button>
@@ -224,7 +273,7 @@ export default function AdminDashboard({ setVista, logout }) {
               <div className="col-md-3"><div className="kpi-card"><div className="d-flex justify-content-between mb-3"><span className="text-white-50">Ingresos</span><DollarSign className="text-success" size={24} /></div><h3 className="text-white fw-bold">S/ 4,250.00</h3></div></div>
               <div className="col-md-3"><div className="kpi-card"><div className="d-flex justify-content-between mb-3"><span className="text-white-50">Pendientes</span><Clock className="text-warning" size={24} /></div><h3 className="text-white fw-bold">{pedidos.filter(p => p.estado === 'Pendiente').length}</h3></div></div>
               <div className="col-md-3"><div className="kpi-card"><div className="d-flex justify-content-between mb-3"><span className="text-white-50">En Reparto</span><Truck className="text-info" size={24} /></div><h3 className="text-white fw-bold">{pedidos.filter(p => p.estado === 'En Ruta').length}</h3></div></div>
-              <div className="col-md-3"><div className="kpi-card"><div className="d-flex justify-content-between mb-3"><span className="text-white-50">Entregados</span><Package className="text-primary" size={24} /></div><h3 className="text-white fw-bold">{pedidos.filter(p => p.estado === 'Entregado').length}</h3></div></div>
+              <div className="col-md-3"><div className="kpi-card"><div className="d-flex justify-content-between mb-3"><span className="text-white-50">Prototipos</span><Box className="text-primary" size={24} /></div><h3 className="text-white fw-bold">{solicitudesCad.length}</h3></div></div>
             </div>
 
             <div className="row g-4">
@@ -284,6 +333,78 @@ export default function AdminDashboard({ setVista, logout }) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* =======================================================
+            VISTA INDUSTRIAL: LISTA DE SOLICITUDES CAD
+            ======================================================= */}
+        {activeMenu === 'solicitudes_cad' && (
+          <div className="kpi-card animate__animated animate__fadeIn">
+            <h5 className="text-white fw-bold mb-4">Bandeja de Ingeniería y Cotizaciones 3D</h5>
+            <div className="overflow-auto">
+              <table className="glass-table">
+                <thead>
+                  <tr>
+                    <th>DNI / Cliente</th>
+                    <th>Material / Color</th>
+                    <th>Infill / Escala</th>
+                    <th>Archivo Físico</th>
+                    <th>Estado Técnico</th>
+                    <th className="text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudesCad.map(sol => (
+                    <tr key={sol.id}>
+                      <td>
+                        <div className="fw-bold text-white">{sol.cliente_nombre}</div>
+                        <small className="text-white-50">DNI: {sol.cliente_dni}</small>
+                      </td>
+                      <td>
+                        <span className="badge bg-primary me-2">{sol.material}</span>
+                        <small className="text-white-50 d-block mt-1">Color: {sol.color}</small>
+                      </td>
+                      <td>
+                        <div className="text-white small fw-bold">{sol.infill}</div>
+                        <small className="text-white-50">{sol.medidas || 'No especifica'}</small>
+                      </td>
+                      <td>
+                        <a 
+                          href={sol.archivo_url} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="btn btn-sm btn-outline-info rounded-pill d-inline-flex align-items-center px-3"
+                        >
+                          <Download size={12} className="me-2"/> Descargar 3D
+                        </a>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${sol.estado.includes('Revisión') ? 'status-pending' : 'status-delivered'}`}>
+                          {sol.estado}
+                        </span>
+                        {parseFloat(sol.precio_cotizado) > 0 && <div className="text-success small fw-bold mt-1">Cotizado: S/ {parseFloat(sol.precio_cotizado).toFixed(2)}</div>}
+                      </td>
+                      <td className="text-center">
+                        {sol.estado.includes('Revisión') ? (
+                          <button 
+                            className="btn btn-sm btn-info text-dark rounded-pill fw-bold px-3 shadow"
+                            onClick={() => { setSelectedCad(sol); setIsCotizarModalOpen(true); }}
+                          >
+                            <Cpu size={14} className="me-1"/> Cotizar Pieza
+                          </button>
+                        ) : (
+                          <span className="text-success small fw-bold">✓ Revisado</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {solicitudesCad.length === 0 && (
+                    <tr><td colSpan="6" className="text-center text-white-50 py-5">No se han recibido archivos CAD en el laboratorio todavía.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -359,6 +480,49 @@ export default function AdminDashboard({ setVista, logout }) {
       </main>
 
       {/* =========================================================================
+          MODAL: FORMULARIO PARA CALCULAR Y ENVIAR PRECIO CAD
+          ========================================================================= */}
+      {isCotizarModalOpen && selectedCad && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center animate__animated animate__fadeIn" style={{zIndex: 3000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)'}}>
+          <div className="card glass-card border-0 shadow-lg p-4" style={{width: '100%', maxWidth: '400px', backgroundColor: '#1e293b', borderRadius: '20px'}}>
+            <div className="d-flex justify-content-between align-items-center border-bottom border-secondary pb-3 mb-4">
+                <h4 className="text-white fw-bold mb-0 d-flex align-items-center"><Cpu className="me-2 text-info"/> Costeo de Manufactura</h4>
+                <button className="btn btn-link text-white-50 p-0" onClick={() => setIsCotizarModalOpen(false)}><X size={24}/></button>
+            </div>
+            
+            <div className="bg-dark rounded-4 p-3 mb-4 border border-secondary text-start small">
+              <span className="text-white-50 d-block mb-1">DISEÑO DE: <strong className="text-white">{selectedCad.cliente_nombre}</strong></span>
+              <span className="text-white-50 d-block mb-1">MATERIAL: <strong className="text-white">{selectedCad.material}</strong></span>
+              <span className="text-white-50 d-block">RELLENO: <strong className="text-white">{selectedCad.infill}</strong></span>
+            </div>
+
+            <form onSubmit={enviarPrecioCotizacion}>
+              <div className="mb-4">
+                <label className="form-label text-white-50 fw-bold">Calcula el precio final de impresión (S/)</label>
+                <div className="input-group">
+                  <span className="input-group-text dark-input text-info border-0 fw-bold">S/</span>
+                  <input 
+                    type="number" 
+                    step="0.10"
+                    className="form-control dark-input border-0 text-white fw-bold fs-4" 
+                    placeholder="0.00"
+                    value={precioCotizado}
+                    onChange={(e) => setPrecioCotizado(e.target.value)}
+                    required
+                  />
+                </div>
+                <small className="text-white-50 mt-1 d-block">Considera gramos de filamento y horas de máquina.</small>
+              </div>
+
+              <button type="submit" className="btn btn-info text-dark w-100 py-3 rounded-pill fw-bold shadow-lg transition hover-scale">
+                  Aprobar Geometría y Enviar Precio
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
           MODAL ASIGNAR RUTA Y VALIDAR PAGO YAPE (CON VISTA DE FOTO CLOUDFLARE R2)
           ========================================================================= */}
       {isAssignModalOpen && pedidoToAssign && (
@@ -372,14 +536,12 @@ export default function AdminDashboard({ setVista, logout }) {
             
             <p className="text-white-50 small text-center mb-3">Orden #{pedidoToAssign.id} - {pedidoToAssign.cliente_nombre}</p>
 
-            {/* CAJA DE VISUALIZACIÓN DE IMAGEN */}
             <div className="bg-dark rounded-4 p-3 mb-4 border border-secondary text-center position-relative">
                 <p className="text-white-50 mb-2 small text-uppercase fw-bold">Evidencia de Pago</p>
                 
                 {pedidoToAssign.metodo_pago && pedidoToAssign.metodo_pago.toLowerCase().includes('yape') ? (
                     pedidoToAssign.comprobante_url ? (
                         <div className="d-flex flex-column align-items-center">
-                            {/* IMAGEN DE CLOUDFLARE R2 */}
                             <img 
                               src={pedidoToAssign.comprobante_url} 
                               alt="Voucher Yape" 
@@ -391,8 +553,6 @@ export default function AdminDashboard({ setVista, logout }) {
                               }}
                             />
                             <p className="text-success mt-2 mb-1 fw-bold small d-flex align-items-center"><CheckCircle size={14} className="me-1"/> Captura detectada</p>
-                            
-                            {/* ENLACE PARA ABRIR EN PESTAÑA NUEVA */}
                             <a 
                               href={pedidoToAssign.comprobante_url} 
                               target="_blank" 
