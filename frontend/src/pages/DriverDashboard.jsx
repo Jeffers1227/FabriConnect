@@ -31,7 +31,7 @@ export default function DriverDashboard({ setVista, logout, usuario }) {
 
     // 1. AUTO-DESCUBRIMIENTO DE ID (Por si el Login no mandó el ID numérico)
     if (!myId && usuario?.email) {
-        fetch('http://localhost:3000/api/usuarios/motorizados', {
+        fetch('https://fabriconnect-backend.onrender.com/api/usuarios/motorizados', {
             headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())
@@ -47,7 +47,7 @@ export default function DriverDashboard({ setVista, logout, usuario }) {
 
     // 2. SINCRONIZACIÓN DE PEDIDOS (Polling)
     const cargarPedidosMotorizado = () => {
-      fetch('http://localhost:3000/api/pedidos')
+      fetch('https://fabriconnect-backend.onrender.com/api/pedidos')
         .then(res => res.json())
         .then(data => setPedidos(Array.isArray(data) ? data : []))
         .catch(err => console.error("Error sincronizando pedidos:", err));
@@ -62,7 +62,7 @@ export default function DriverDashboard({ setVista, logout, usuario }) {
   const completarEntrega = async (id) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/pedidos/${id}/estado`, {
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/pedidos/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'Entregado' }) 

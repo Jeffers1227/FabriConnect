@@ -21,7 +21,7 @@ export default function Catalog({ addToCart }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/productos')
+    fetch('https://fabriconnect-backend.onrender.com/api/productos')
       .then(res => res.json())
       .then(data => { setProductos(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
@@ -37,7 +37,7 @@ export default function Catalog({ addToCart }) {
     if (!silent) setTrackingStatus('loading'); // Si es silencioso (automático), no mostramos el spinner para no parpadear
     
     try {
-      const resCad = await fetch(`http://localhost:3000/api/cad/cliente/${codigo}`);
+      const resCad = await fetch(`https://fabriconnect-backend.onrender.com/api/cad/cliente/${codigo}`);
       const dataCad = await resCad.json();
       
       if (dataCad && dataCad.length > 0) {
@@ -46,7 +46,7 @@ export default function Catalog({ addToCart }) {
 
         let nuevoEstadoGeneral = null;
         if (solicitudActual.estado === 'Pagado / En Producción') {
-            const resPedidos = await fetch('http://localhost:3000/api/pedidos');
+            const resPedidos = await fetch('https://fabriconnect-backend.onrender.com/api/pedidos');
             const dataPedidos = await resPedidos.json();
             const pedidosDelCliente = dataPedidos.filter(p => p.cliente_nombre.includes(solicitudActual.cliente_nombre));
             
