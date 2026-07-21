@@ -19,7 +19,7 @@ export default function CadUpload({ token }) {
     formData.append('material', material);
 
     try {
-      const res = await fetch('http://localhost:3000/api/cad/solicitar-fabricacion', {
+      const res = await fetch('https://fabriconnect-backend.onrender.com/api/cad/solicitar-fabricacion', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData

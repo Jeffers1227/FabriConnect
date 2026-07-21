@@ -115,7 +115,7 @@ export default function Checkout({ cartItems, setVista }) {
       }
 
       // IMPORTANTE: fetch configura los 'headers' automáticamente al detectar FormData
-      const response = await fetch('http://localhost:3000/api/pedidos', {
+      const response = await fetch('https://fabriconnect-backend.onrender.com/api/pedidos', {
         method: 'POST',
         body: formDataEnvio
       });

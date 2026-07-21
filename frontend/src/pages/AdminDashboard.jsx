@@ -57,21 +57,21 @@ export default function AdminDashboard({ setVista, logout }) {
   const cargarDatos = () => {
     const token = localStorage.getItem('token');
 
-    fetch('http://localhost:3000/api/pedidos')
+    fetch('https://fabriconnect-backend.onrender.com/api/pedidos')
       .then(res => res.json()).then(data => setPedidos(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error al sincronizar pedidos:", err));
       
-    fetch('http://localhost:3000/api/productos')
+    fetch('https://fabriconnect-backend.onrender.com/api/productos')
       .then(res => res.json()).then(data => setProductos(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error al sincronizar productos:", err));
 
     // CARGAR LAS SOLICITUDES CAD DESDE EL BACKEND
-    fetch('http://localhost:3000/api/cad')
+    fetch('https://fabriconnect-backend.onrender.com/api/cad')
       .then(res => res.json()).then(data => setSolicitudesCad(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error al sincronizar CAD:", err));
 
     if (token) {
-      fetch('http://localhost:3000/api/usuarios/motorizados', {
+      fetch('https://fabriconnect-backend.onrender.com/api/usuarios/motorizados', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(res => res.json()).then(data => {
@@ -83,7 +83,7 @@ export default function AdminDashboard({ setVista, logout }) {
 
   const cambiarEstadoPedido = async (id, nuevoEstado) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/pedidos/${id}/estado`, {
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/pedidos/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: nuevoEstado })
@@ -97,7 +97,7 @@ export default function AdminDashboard({ setVista, logout }) {
   const confirmarAsignacion = async () => {
     if (!selectedMotoId) return alert("Por favor selecciona un repartidor de la lista.");
     try {
-      const res = await fetch(`http://localhost:3000/api/pedidos/${pedidoToAssign.id}/estado`, {
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/pedidos/${pedidoToAssign.id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'En Ruta', motorizado_id: selectedMotoId })
@@ -116,7 +116,7 @@ export default function AdminDashboard({ setVista, logout }) {
     if (!precioCotizado || isNaN(precioCotizado)) return alert("Por favor, ingresa un precio válido.");
 
     try {
-      const res = await fetch(`http://localhost:3000/api/cad/${selectedCad.id}/cotizar`, {
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/cad/${selectedCad.id}/cotizar`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ precio_cotizado: parseFloat(precioCotizado) })
@@ -152,7 +152,7 @@ export default function AdminDashboard({ setVista, logout }) {
     e.preventDefault();
     const token = localStorage.getItem('token'); 
     try {
-      const url = modalMode === 'crear' ? 'http://localhost:3000/api/productos' : `http://localhost:3000/api/productos/${currentProduct.id}`;
+      const url = modalMode === 'crear' ? 'https://fabriconnect-backend.onrender.com/api/productos' : `https://fabriconnect-backend.onrender.com/api/productos/${currentProduct.id}`;
       const res = await fetch(url, {
         method: modalMode === 'crear' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -169,7 +169,7 @@ export default function AdminDashboard({ setVista, logout }) {
     if (!window.confirm("¿Estás seguro de eliminar este componente del catálogo?")) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3000/api/productos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/productos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
       if (res.ok) cargarDatos();
     } catch (error) { console.error(error); }
   };
@@ -190,7 +190,7 @@ export default function AdminDashboard({ setVista, logout }) {
     e.preventDefault();
     const token = localStorage.getItem('token');
     try {
-      const url = motoModalMode === 'crear' ? 'http://localhost:3000/api/usuarios/motorizados' : `http://localhost:3000/api/usuarios/motorizados/${currentMoto.id}`;
+      const url = motoModalMode === 'crear' ? 'https://fabriconnect-backend.onrender.com/api/usuarios/motorizados' : `https://fabriconnect-backend.onrender.com/api/usuarios/motorizados/${currentMoto.id}`;
       const res = await fetch(url, {
         method: motoModalMode === 'crear' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -207,7 +207,7 @@ export default function AdminDashboard({ setVista, logout }) {
     if (!window.confirm("¿Dar de baja a este motorizado? Se eliminará su acceso a la App.")) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3000/api/usuarios/motorizados/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/usuarios/motorizados/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) cargarDatos();
     } catch (error) { console.error(error); }
   };

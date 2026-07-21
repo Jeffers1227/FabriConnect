@@ -59,7 +59,7 @@ export default function MisCotizaciones({ setVista }) {
     if (!dniBusqueda) return;
     setIsBuscando(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/cad/cliente/${dniBusqueda}`);
+      const res = await fetch(`https://fabriconnect-backend.onrender.com/api/cad/cliente/${dniBusqueda}`);
       const data = await res.json();
       setCotizaciones(data);
     } catch (error) { console.error(error); } finally { setIsBuscando(false); }
@@ -95,7 +95,7 @@ export default function MisCotizaciones({ setVista }) {
       formDataEnvio.append('direccion', `${formData.direccionExtra} [GPS: ${clientPosition.lat.toFixed(4)}, ${clientPosition.lng.toFixed(4)}]`);
       if (paymentMethod === 'yape' && comprobanteFile) formDataEnvio.append('comprobante', comprobanteFile);
 
-      const response = await fetch(`http://localhost:3000/api/cad/${cotizacionAPagar.id}/pagar`, {
+      const response = await fetch(`https://fabriconnect-backend.onrender.com/api/cad/${cotizacionAPagar.id}/pagar`, {
         method: 'POST', body: formDataEnvio
       });
 

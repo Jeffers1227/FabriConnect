@@ -26,7 +26,7 @@ export default function SubirCAD({ setVista }) {
       Object.keys(formData).forEach(key => data.append(key, formData[key]));
       data.append('archivo_cad', archivo); // El archivo físico
 
-      const res = await fetch('http://localhost:3000/api/cad', {
+      const res = await fetch('https://fabriconnect-backend.onrender.com/api/cad', {
         method: 'POST',
         body: data
       });
