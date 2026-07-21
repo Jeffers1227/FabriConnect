@@ -70,21 +70,21 @@ export default function SubirCAD({ setVista }) {
                 <label className="text-white-50 small fw-bold">Nombre Completo *</label>
                 <div className="input-group">
                   <span className="input-group-text dark-input border-0"><User size={16}/></span>
-                  <input type="text" name="nombre" value={formData.nombre} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
+                  <input type="text" name="nombre" placeholder='Maria' value={formData.nombre} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
                 </div>
               </div>
               <div className="col-md-4">
                 <label className="text-white-50 small fw-bold">Correo (Para enviar cotización) *</label>
                 <div className="input-group">
                   <span className="input-group-text dark-input border-0"><Mail size={16}/></span>
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
+                  <input type="email" name="email" placeholder='...@gmail.com' value={formData.email} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
                 </div>
               </div>
               <div className="col-md-4">
                 <label className="text-white-50 small fw-bold">DNI / RUC *</label>
                 <div className="input-group">
                   <span className="input-group-text dark-input border-0"><CreditCard size={16}/></span>
-                  <input type="text" name="dni" value={formData.dni} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
+                  <input type="text" name="dni" placeholder='88888888' value={formData.dni} onChange={handleInputChange} className="form-control dark-input border-0 text-white" required />
                 </div>
               </div>
             </div>

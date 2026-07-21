@@ -3,10 +3,9 @@ import Navbar from './components/Navbar';
 import Catalog from './pages/Catalog';
 import Login from './pages/Login';
 import SubirCAD from './pages/SubirCAD'; 
-import MisCotizaciones from './pages/MisCotizaciones'; // <-- NUEVO: Importamos la vista de cotizaciones
+import MisCotizaciones from './pages/MisCotizaciones';
 import CartOffcanvas from './components/CartOffcanvas';
 import Checkout from './pages/Checkout';
-import Hero from './components/Hero';
 import AdminDashboard from './pages/AdminDashboard'; 
 import DriverDashboard from './pages/DriverDashboard'; 
 
@@ -41,7 +40,7 @@ export default function App() {
         </>
       )}
       
-      {vista === 'catalogo' && <Hero />}
+      {/* NOTA: Eliminamos <Hero /> porque Catalog.jsx ahora tiene su propio Hero Gigante */}
       
       <main className={vista === 'admin' || vista === 'motorizado' ? "" : "container-fluid px-lg-5 pt-5 mt-5"}>
         {vista === 'catalogo' && <Catalog addToCart={addToCart} token={token} />}
@@ -54,14 +53,9 @@ export default function App() {
         }} setVista={setVista} />}
         
         {vista === 'subircad' && <SubirCAD setVista={setVista} />}
-        
-        {/* NUEVO: RUTA PARA MIS COTIZACIONES */}
         {vista === 'mis_cotizaciones' && <MisCotizaciones setVista={setVista} />}
-        
         {vista === 'checkout' && <Checkout cartItems={cartItems} setVista={setVista} />}
-        
         {vista === 'admin' && <AdminDashboard setVista={setVista} logout={logout} />}
-
         {vista === 'motorizado' && <DriverDashboard setVista={setVista} logout={logout} usuario={usuario} />}
       </main>
     </div>
