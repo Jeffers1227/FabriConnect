@@ -8,12 +8,21 @@ export default function Navbar({ usuario, setVista, logout, cartCount }) {
           Fabri<span style={{color: '#f97316'}}>Connect</span>
         </a>
         <div className="d-flex align-items-center">
+            
+            {/* NUEVO BOTÓN: MIS COTIZACIONES */}
+            <button className="btn btn-link text-white-50 text-decoration-none small me-2 d-none d-md-block fw-bold transition hover-scale" onClick={() => setVista('mis_cotizaciones')}>
+                Mis Cotizaciones
+            </button>
+
+            {/* BOTÓN PARA SUBIR CAD */}
+            <button className="btn btn-outline-info btn-sm me-3 rounded-pill fw-bold px-3 d-none d-md-block" onClick={() => setVista('subircad')}>
+                <i className="bi bi-box me-1"></i> Fabricación 3D
+            </button>
+
             <button className="btn btn-outline-light btn-sm position-relative me-3 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
                 <i className="bi bi-cart3"></i>
                 {cartCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{cartCount}</span>}
             </button>
-            
-            
 
             {usuario ? (
                 <div className="dropdown">
